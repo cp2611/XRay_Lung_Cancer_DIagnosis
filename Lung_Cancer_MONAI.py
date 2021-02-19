@@ -51,7 +51,6 @@ If lung cancer is found at an earlier stage, when it is small and before it has 
 
 img = cv2.imread(r'JPCLN022.png',0)  
 img=Image.fromarray(img)
-
 c2 ,c3  = st.beta_columns(( 0.3, 0.3))
 c2.header("Malignant")
 c3.header("Normal")
@@ -67,7 +66,6 @@ c5.markdown("""
 [Sample image](img)""")
 c5.button("Upload your X-Ray below")
 uploaded_file=c5.file_uploader("", type = ["png"])
-#uploaded_image = Image.open(uploaded_file)
 transformations_new=transforms.Compose([
     transforms.Resize(255),
     transforms.CenterCrop(224),
@@ -79,9 +77,10 @@ if uploaded_file is not None:
   input_new=  transformations_new(uploaded_image)
   input_new=input_new.unsqueeze(0)
   input_image=transforms.Resize(255)(uploaded_image)
+
 else :
   input_image=transforms.Resize(255)(img)
-  input_new=transforms.CenterCrop(224)(transforms.ToTensor()(input_image))
+  input_new=  transformations_new(input_image)
   input_new=input_new.unsqueeze(0)
 
 
@@ -89,47 +88,17 @@ if uploaded_file is not None:
   c6.image(input_image,channel='BGR')
 else:
     c6.button("""Awaiting X_ray image to be uploaded. Currently using sample X_Ray image (shown below)""")
-    #st.subheader("""[Awaiting X_ray image to be uploaded. Currently using sample X_Ray image (shown below)]""")
     c6.image(input_image)
     
-class LeNet_for_1channel(nn.Module):
-  def __init__(self):
-    super(LeNet_for_1channel,self).__init__()
-    self.cnn_model = nn.Sequential(
-        nn.Conv2d(1,6,5,padding=(1,1),stride=(4,4)), # (40,1,244,244)-->(40,6,60,60)
-        nn.Tanh(),
-        nn.AvgPool2d(2,stride=2), # (40,6,60,60) --> (20,6,30,30)
-        nn.Conv2d(6,16,3,padding=(1,1),stride=(2,2)), # (20,6,30,30) --> (20,16,14,14)
-        nn.Tanh(),
-        nn.AvgPool2d(2,stride=2) # (20,16,14,14) -->  (20,16,7,7) 
-    )
-    self.fc_model = nn.Sequential(
-        nn.Linear(784,120),
-        nn.Tanh(),
-        nn.Linear(120,84),
-        nn.Tanh(),
-        nn.Linear(84,2),
-        nn.Softmax()
-    )
-  def forward(self,x):
-    x=self.cnn_model(x)
-    x=x.view(x.size(0),-1)
-    x=self.fc_model(x)
-    return x
 import monai
 from monai.networks.nets import densenet121
 model = densenet121(spatial_dims=2, in_channels=1,out_channels=2)#.to(device)#spatial_dims=2, in_channels=1,out_channels=num_classes
 model.eval()
-#load_model= model()
-#st.write(input_new.shape)
 output = model.load_state_dict(torch.load("best_metric_model_400epochs.pth",map_location=torch.device('cpu')))
 output=model(input_new)
-#st.write(output)
-#st.write(nn.Softmax()(output.data[0])[1])
 
 malignant_probability=nn.Softmax()(output.data[0])[1].cpu().numpy()
 
-#malignant_probability2=torch.transpose(nn.Softmax()(output.data), 0,1)[1].cpu().numpy()
 st.subheader('Predicted Malignant Probability')
 st.write(np.around(malignant_probability*100,2),'%')
 
