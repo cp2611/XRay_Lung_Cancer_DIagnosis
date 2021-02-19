@@ -49,7 +49,7 @@ If lung cancer is found at an earlier stage, when it is small and before it has 
 #### Tumors can be benign (noncancerous) or malignant (cancerous). Benign tumors tend to grow slowly and do not spread. Malignant tumors can grow rapidly, invade and destroy nearby normal tissues, and spread throughout the body. Benign tumor is considered is Normal as they are not cancerous.
  """)
 
-img = cv2.imread(r'JPCLN009.png',0)  
+img = cv2.imread(r'JPCLN032.png',0)  
 img=Image.fromarray(img)
 
 c2 ,c3  = st.beta_columns(( 0.3, 0.3))
